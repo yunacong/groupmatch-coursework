@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+{% block title %}Create Project · GroupMatch{% endblock %}
+{% block content %}
+<section class="card form-card"><h1>Create Project</h1><form method="post" novalidate class="validated-form">{% csrf_token %}{% for field in form %}<div class="form-group"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}</div>{% endfor %}<button class="button" type="submit">Create project</button></form></section>
+{% endblock %}

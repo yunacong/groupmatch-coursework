@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block title %}{{ project.title }} · GroupMatch{% endblock %}
+{% block content %}
+<section class="card project-detail"><div class="split-row"><div><h1>{{ project.title }}</h1><p>{{ project.description }}</p><p><strong>Leader:</strong> {{ project.creator.username }}</p><div class="tag-row">{% for skill in project.skill_list %}<span class="tag">{{ skill }}</span>{% endfor %}</div></div><div class="sidebar-actions">{% if is_member %}<a class="button" href="{% url 'task_board' project.pk %}">Open Task Board</a>{% elif not has_applied and project.recruitment_status == 'open' %}<button class="button" type="button" onclick="document.getElementById('applyPanel').scrollIntoView({behavior:'smooth'})">Apply to Join</button>{% else %}<span class="badge pending">Application sent</span>{% endif %}{% if is_leader %}<a class="button secondary" href="{% url 'manage_applications' project.pk %}">Manage Applications</a>{% endif %}</div></div></section>
+{% if not is_member and project.recruitment_status == 'open' %}
+<section id="applyPanel" class="card form-card"><h2>Apply to Join</h2><form method="post" action="{% url 'apply_to_project' project.pk %}" novalidate class="validated-form">{% csrf_token %}{% for field in app_form %}<div class="form-group"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}</div>{% endfor %}<button class="button" type="submit">Submit application</button></form></section>
+{% endif %}
+{% endblock %}

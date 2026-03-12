@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Task Board · {{ project.title }}{% endblock %}
+{% block content %}
+<div class="page-header split-row"><div><h1>{{ project.title }} Task Board</h1><p>Manage tasks, progress and visible contribution.</p></div><div>{% if is_leader %}<a class="button" href="{% url 'task_create' project.pk %}">+ Add Task</a>{% endif %}</div></div>
+<div id="statusAnnouncement" class="sr-only" aria-live="polite"></div>
+{% if request.GET.perf == 'baseline' %}<img src="{% static 'img/baseline-board.svg' %}" alt="Baseline decorative board illustration" class="card">{% endif %}
+<section class="task-columns" aria-label="Task board">
+{% for key, tasks in columns.items %}
+<div class="task-column" data-column="{{ key }}">
+<h2>{% if key == 'todo' %}To Do{% elif key == 'doing' %}In Progress{% else %}Completed{% endif %}</h2>
+<div class="task-list">
+{% for task in tasks %}
+<article class="task-card" tabindex="0" data-task-id="{{ task.id }}" data-status="{{ key }}" aria-label="Task {{ task.title }}">
+<h3>{{ task.title }}</h3><p>{{ task.description }}</p><p class="meta">Due: {{ task.due_date|default:'Not set' }}</p>
+<div class="tag-row">{% for user in task.assignees.all %}<span class="tag">{{ user.username }}</span>{% empty %}<span class="tag">Unassigned</span>{% endfor %}</div>
+<div class="status-controls"><button class="button tertiary small move-left" type="button" aria-label="Move task left">←</button><button class="button tertiary small move-right" type="button" aria-label="Move task right">→</button></div>
+<details><summary>Comments ({{ task.comments.count }})</summary>{% for comment in task.comments.all %}<p><strong>{{ comment.author.username }}:</strong> {{ comment.body }}</p>{% empty %}<p>No comments yet.</p>{% endfor %}
+<form method="post" action="{% url 'add_comment' task.pk %}" class="comment-form">{% csrf_token %}<label for="comment-{{ task.id }}">Add comment</label><textarea id="comment-{{ task.id }}" name="body" rows="2" required></textarea><button class="button small" type="submit">Post</button></form></details>
+</article>
+{% empty %}
+<div class="card muted">No tasks in this column.</div>
+{% endfor %}
+</div></div>{% endfor %}
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'js/task_board.js' %}" defer></script>{% endblock %}

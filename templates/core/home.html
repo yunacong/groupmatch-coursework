@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Home · GroupMatch{% endblock %}
+{% block content %}
+<section class="hero card">
+    <div>
+        <p class="eyebrow">Coursework Group Matching & Project Management Platform</p>
+        <h1>Build stronger student teams and track contribution fairly.</h1>
+        <p class="lead">GroupMatch replaces fragmented WhatsApp, spreadsheets and email threads with a unified project workspace for group coursework.</p>
+        <div class="action-row">
+            <a class="button" href="{% if user.is_authenticated %}{% url 'project_explore' %}{% else %}{% url 'signup' %}{% endif %}">Get started</a>
+            <a class="button secondary" href="{% url 'login' %}">Sign in</a>
+        </div>
+    </div>
+    <div class="stats-panel" aria-label="Platform summary">
+        <div><strong>{{ stats.projects }}</strong><span>projects</span></div>
+        <div><strong>{{ stats.users }}</strong><span>users</span></div>
+        <div><strong>{{ stats.tasks }}</strong><span>tasks</span></div>
+    </div>
+</section>
+{% if request.GET.perf == 'baseline' %}<img src="{% static 'img/baseline-hero.svg' %}" alt="Decorative baseline illustration" class="card">{% endif %}
+<section><h2>Open projects</h2><div class="card-grid">{% for project in projects %}<article class="card project-card"><h3>{{ project.title }}</h3><p>{{ project.description|truncatechars:100 }}</p><div class="tag-row">{% for skill in project.skill_list %}<span class="tag">{{ skill }}</span>{% endfor %}</div></article>{% empty %}<p class="card">No projects yet. Create the first one after signing in.</p>{% endfor %}</div></section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard · GroupMatch{% endblock %}
+{% block content %}
+<div class="page-header"><h1>Dashboard</h1><p>Review your created projects, joined projects, and applications.</p></div>
+<div class="dashboard-grid">
+<section class="card"><h2>My created projects</h2>{% for project in created_projects %}<div class="list-item"><a href="{% url 'project_detail' project.pk %}">{{ project.title }}</a><span>{{ project.get_recruitment_status_display }}</span></div>{% empty %}<p>No created projects yet.</p>{% endfor %}</section>
+<section class="card"><h2>My joined projects</h2>{% for project in joined_projects %}<div class="list-item"><a href="{% url 'task_board' project.pk %}">{{ project.title }}</a><span>member</span></div>{% empty %}<p>No joined projects yet.</p>{% endfor %}</section>
+<section class="card"><h2>Application status</h2>{% for item in application_status %}<div class="list-item"><span>{{ item.project.title }}</span><span class="badge {{ item.status }}">{{ item.get_status_display }}</span></div>{% empty %}<p>No applications submitted.</p>{% endfor %}</section>
+<section class="card"><h2>Contribution overview</h2>{% for row in contribution_rows %}<div class="list-item"><span>{{ row.title }}</span><span>{{ row.task_count }} tasks</span></div>{% empty %}<p>No contribution data yet.</p>{% endfor %}</section>
+</div>
+{% endblock %}

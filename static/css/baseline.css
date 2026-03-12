@@ -1,0 +1,2 @@
+.hero, .project-card, .task-card { background-image: linear-gradient(120deg, rgba(79,70,229,.07), rgba(16,185,129,.07)); }
+img.card { width: 100%; height: auto; }
