@@ -25,6 +25,8 @@ class ApplicationForm(forms.ModelForm):
         }
 
 class TaskForm(forms.ModelForm):
+    # Queryset is intentionally empty by default and populated in __init__
+    # to restrict assignee choices to current project members only.
     assignees = forms.ModelMultipleChoiceField(queryset=User.objects.none(), widget=forms.CheckboxSelectMultiple, required=False)
 
     class Meta:
@@ -37,6 +39,9 @@ class TaskForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # 'project' is passed as a custom kwarg from the view.
+        # It must be popped before calling super().__init__() to avoid
+        # Django raising an unexpected keyword argument error.
         project = kwargs.pop('project', None)
         super().__init__(*args, **kwargs)
         if project is not None:

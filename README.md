@@ -12,7 +12,7 @@ visible contribution tracking, and lightweight collaboration through comments.
 
 ## Setup
 ```bash
-cd groupmatch_project
+cd groupmatch-coursework
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
@@ -44,4 +44,6 @@ JavaScript separated, uses a small custom stylesheet, and updates task status wi
 the interface does not require a full page refresh for each micro-interaction.
 
 ## Repository / deployment
-Add your public repository URL and deployed URL to the PDF report before submission.
+- Public repository: https://github.com/yunacong/groupmatch-coursework
+- Deployed application: https://groupmatch-coursework.onrender.com
+- Group: AF

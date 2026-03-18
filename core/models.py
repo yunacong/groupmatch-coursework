@@ -3,6 +3,7 @@ from django.db import models
 from django.utils import timezone
 
 class Project(models.Model):
+    """Represents a coursework project created by a student leader."""
     STATUS_CHOICES = [('open', 'Open'), ('closed', 'Closed')]
 
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_projects')
@@ -19,12 +20,15 @@ class Project(models.Model):
         return self.title
 
     def skill_list(self):
+        """Return required_skills as a cleaned list, e.g. 'Python, JS' → ['Python', 'JS']."""
         return [skill.strip() for skill in self.required_skills.split(',') if skill.strip()]
 
     def is_leader(self, user):
+        """Return True if the given user holds the leader role in this project."""
         return self.memberships.filter(user=user, role='leader').exists()
 
     def is_member(self, user):
+        """Return True if the given user has any membership in this project."""
         return self.memberships.filter(user=user).exists()
 
 class Membership(models.Model):

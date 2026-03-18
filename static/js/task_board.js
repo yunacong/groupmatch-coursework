@@ -2,9 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const columns = ['todo', 'doing', 'done'];
   const board = document.querySelector('.task-columns');
   const announcement = document.getElementById('statusAnnouncement');
+  // Extract the CSRF token from the browser cookie.
+  // Django's CsrfViewMiddleware rejects POST requests that omit this token.
   const csrftoken = document.cookie.split('; ').find(row => row.startsWith('csrftoken='))?.split('=')[1];
 
   function columnElement(statusKey) { return board?.querySelector(`[data-column="${statusKey}"] .task-list`); }
+  // Update the aria-live region so screen readers announce the status change
+  // without requiring the user's focus to move to the notification element.
   function announce(message) { if (announcement) announcement.textContent = message; }
 
   function relabelButtons(card, statusKey) {
@@ -44,6 +48,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.task-card').forEach(card => {
     relabelButtons(card, card.dataset.status);
+    // ArrowLeft/ArrowRight keyboard support allows keyboard-only users
+    // to move task cards between columns without using a mouse.
     card.addEventListener('keydown', event => {
       if (event.key === 'ArrowLeft') moveTask(card, -1);
       if (event.key === 'ArrowRight') moveTask(card, 1);

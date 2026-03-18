@@ -98,12 +98,15 @@ def manage_applications(request, pk):
 @require_POST
 def application_decision(request, pk):
     application = get_object_or_404(Application, pk=pk)
+    # Only the project leader can approve or decline applications.
     if not application.project.is_leader(request.user):
         return HttpResponseForbidden('Only the leader can update applications.')
     decision = request.POST.get('decision')
     if decision == 'accept':
         application.status = 'accepted'
         application.save(update_fields=['status'])
+        # get_or_create prevents a duplicate Membership record if this
+        # endpoint is called more than once for the same applicant (e.g. double-click).
         Membership.objects.get_or_create(user=application.applicant, project=application.project, defaults={'role': 'member'})
         messages.success(request, 'Applicant accepted.')
     elif decision == 'decline':
@@ -115,8 +118,12 @@ def application_decision(request, pk):
 @login_required
 def task_board(request, pk):
     project = get_object_or_404(Project, pk=pk)
+    # Only project members can access the task board;
+    # returns 403 immediately to prevent data leakage to unauthorised users.
     if not project.is_member(request.user):
         return HttpResponseForbidden('Only project members can view the task board.')
+    # prefetch_related avoids N+1 queries when rendering assignees
+    # and comments for each task card in the template.
     columns = {
         'todo': project.tasks.filter(status='todo').prefetch_related('assignees', 'comments'),
         'doing': project.tasks.filter(status='doing').prefetch_related('assignees', 'comments'),
@@ -147,13 +154,18 @@ def task_create(request, pk):
 @require_POST
 def update_task_status(request, pk):
     task = get_object_or_404(Task, pk=pk)
+    # Membership check ensures only project members can mutate task state,
+    # even if a user constructs a direct POST request to this endpoint.
     if not task.project.is_member(request.user):
         return JsonResponse({'error': 'Unauthorised'}, status=403)
     data = json.loads(request.body.decode('utf-8'))
     new_status = data.get('status')
+    # Whitelist valid statuses to prevent arbitrary value injection into the database.
     if new_status not in {'todo', 'doing', 'done'}:
         return JsonResponse({'error': 'Invalid status'}, status=400)
     task.status = new_status
+    # update_fields limits the SQL UPDATE to only the changed columns,
+    # avoiding accidental overwrites of unrelated fields.
     task.save(update_fields=['status', 'updated_at'])
     return JsonResponse({'message': 'Task updated', 'status': task.get_status_display(), 'task_id': task.pk, 'new_status_key': new_status})
 
