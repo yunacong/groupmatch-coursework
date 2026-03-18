@@ -30,7 +30,7 @@ def signup_view(request):
 @login_required
 def dashboard(request):
     created_projects = Project.objects.filter(creator=request.user)
-    joined_projects = Project.objects.filter(memberships__user=request.user).exclude(creator=request.user).distinct()
+    joined_projects = Project.objects.filter(memberships__user=request.user).exclude(creator=request.user).annotate(member_count=Count('memberships', distinct=True)).distinct()
     application_status = Application.objects.filter(applicant=request.user).select_related('project')
     contribution_rows = Project.objects.filter(memberships__user=request.user).annotate(task_count=Count('tasks', distinct=True)).distinct()[:6]
     return render(request, 'core/dashboard.html', {'created_projects': created_projects, 'joined_projects': joined_projects, 'application_status': application_status, 'contribution_rows': contribution_rows})
@@ -67,10 +67,31 @@ def project_detail(request, pk):
 
 @login_required
 @require_POST
+def toggle_project_status(request, pk):
+    project = get_object_or_404(Project, pk=pk)
+    if not project.is_leader(request.user):
+        return HttpResponseForbidden('Only the project leader can change project status.')
+    if project.recruitment_status == 'open':
+        project.recruitment_status = 'closed'
+        messages.success(request, 'Project closed. Content is now locked.')
+    else:
+        project.recruitment_status = 'open'
+        messages.success(request, 'Project reopened.')
+    project.save(update_fields=['recruitment_status'])
+    return redirect('project_detail', pk=pk)
+
+@login_required
+@require_POST
 def apply_to_project(request, pk):
     project = get_object_or_404(Project, pk=pk)
+    if project.recruitment_status == 'closed':
+        messages.error(request, 'This project is closed.')
+        return redirect('project_detail', pk=pk)
     if project.is_member(request.user):
         messages.info(request, 'You are already a member of this project.')
+        return redirect('project_detail', pk=pk)
+    if Application.objects.filter(applicant=request.user, project=project).exists():
+        messages.info(request, 'You have already applied to this project.')
         return redirect('project_detail', pk=pk)
     form = ApplicationForm(request.POST)
     if form.is_valid():
@@ -129,13 +150,16 @@ def task_board(request, pk):
         'doing': project.tasks.filter(status='doing').prefetch_related('assignees', 'comments'),
         'done': project.tasks.filter(status='done').prefetch_related('assignees', 'comments'),
     }
-    return render(request, 'core/task_board.html', {'project': project, 'columns': columns, 'is_leader': project.is_leader(request.user)})
+    is_closed = project.recruitment_status == 'closed'
+    return render(request, 'core/task_board.html', {'project': project, 'columns': columns, 'is_leader': project.is_leader(request.user), 'is_closed': is_closed})
 
 @login_required
 def task_create(request, pk):
     project = get_object_or_404(Project, pk=pk)
     if not project.is_member(request.user):
         return HttpResponseForbidden('Only project members can create tasks.')
+    if project.recruitment_status == 'closed':
+        return HttpResponseForbidden('This project is closed. No new tasks can be created.')
     if request.method == 'POST':
         form = TaskForm(request.POST, project=project)
         if form.is_valid():
@@ -158,6 +182,8 @@ def update_task_status(request, pk):
     # even if a user constructs a direct POST request to this endpoint.
     if not task.project.is_member(request.user):
         return JsonResponse({'error': 'Unauthorised'}, status=403)
+    if task.project.recruitment_status == 'closed':
+        return JsonResponse({'error': 'Project is closed'}, status=403)
     data = json.loads(request.body.decode('utf-8'))
     new_status = data.get('status')
     # Whitelist valid statuses to prevent arbitrary value injection into the database.
@@ -175,6 +201,8 @@ def add_comment(request, pk):
     task = get_object_or_404(Task, pk=pk)
     if not task.project.is_member(request.user):
         return HttpResponseForbidden('Only project members can comment.')
+    if task.project.recruitment_status == 'closed':
+        return HttpResponseForbidden('This project is closed. No new comments can be added.')
     form = CommentForm(request.POST)
     if form.is_valid():
         comment = form.save(commit=False)

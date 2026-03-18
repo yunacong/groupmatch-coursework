@@ -19,5 +19,5 @@
     </div>
 </section>
 {% if request.GET.perf == 'baseline' %}<img src="{% static 'img/baseline-hero.svg' %}" alt="Decorative baseline illustration" class="card">{% endif %}
-<section><h2>Open projects</h2><div class="card-grid">{% for project in projects %}<article class="card project-card"><h3>{{ project.title }}</h3><p>{{ project.description|truncatechars:100 }}</p><div class="tag-row">{% for skill in project.skill_list %}<span class="tag">{{ skill }}</span>{% endfor %}</div></article>{% empty %}<p class="card">No projects yet. Create the first one after signing in.</p>{% endfor %}</div></section>
+<section style="margin-top:2.5rem"><h2>Open projects</h2><div class="card-grid">{% for project in projects %}<article class="card project-card"><h3>{{ project.title }}</h3><p>{{ project.description|truncatechars:100 }}</p><div class="tag-row">{% for skill in project.skill_list %}<span class="tag">{{ skill }}</span>{% endfor %}</div></article>{% empty %}<p class="card">No projects yet. Create the first one after signing in.</p>{% endfor %}</div></section>
 {% endblock %}

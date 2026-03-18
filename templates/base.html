@@ -15,13 +15,14 @@
         <a class="brand" href="{% url 'home' %}">GroupMatch</a>
         <button id="navToggle" class="nav-toggle" aria-expanded="false" aria-controls="primaryNav">Menu</button>
         <nav id="primaryNav" class="primary-nav" aria-label="Main navigation">
-            <a href="{% url 'home' %}">Home</a>
             {% if user.is_authenticated %}
                 <a href="{% url 'dashboard' %}">Dashboard</a>
                 <a href="{% url 'project_explore' %}">Explore</a>
                 <a href="{% url 'project_create' %}">Create Project</a>
+                <span class="nav-username">{{ user.username }}</span>
                 <form method="post" action="{% url 'logout' %}" class="inline-form">{% csrf_token %}<button class="link-button" type="submit">Logout</button></form>
             {% else %}
+                <a href="{% url 'home' %}">Home</a>
                 <a href="{% url 'login' %}">Login</a>
                 <a href="{% url 'signup' %}" class="button small">Register</a>
             {% endif %}

@@ -9,6 +9,7 @@ urlpatterns = [
     path('projects/explore/', views.project_explore, name='project_explore'),
     path('projects/<int:pk>/', views.project_detail, name='project_detail'),
     path('projects/<int:pk>/apply/', views.apply_to_project, name='apply_to_project'),
+    path('projects/<int:pk>/toggle-status/', views.toggle_project_status, name='toggle_project_status'),
     path('projects/<int:pk>/applications/', views.manage_applications, name='manage_applications'),
     path('applications/<int:pk>/decision/', views.application_decision, name='application_decision'),
     path('projects/<int:pk>/tasks/', views.task_board, name='task_board'),
